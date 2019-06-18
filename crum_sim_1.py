@@ -13,16 +13,18 @@ class CRUMInterface:
     iter = 0
     def advance(self):
         self.iter += 1
+        setIterParamText(self.iter)
         print('Advanced to iteration %i' % self.iter)
     def reset(self):
         self.iter = 0
+        setIterParamText(self.iter)
 crumIntf = CRUMInterface()
 
 # necessary for showing figures in separate window
 import matplotlib
 matplotlib.use('Qt5Agg')
 
-simFigure = plt.figure('Traffic Algorithm Visualization')
+simFigure = plt.figure('CRUM Traffic Routing Algorithm')
 
 # draw Braess's network
 plt.subplot(1, 2, 1)
@@ -66,8 +68,7 @@ nextActionButton = Button(nextActionAxis, 'Next step')
 playActionButton = Button(playActionAxis, 'Play/Pause')
 
 def resetActionHandler(val):
-    global isPlaying
-    isPlaying = False
+    setIsPlayingCtrlText(False)
     crumIntf.reset()
     print('Simulation reset')
 resetActionButton.on_clicked(resetActionHandler)
@@ -87,10 +88,26 @@ loopCrumThread = Thread(target=loopCrum, daemon=True)
 loopCrumThread.start()
 
 def playActionHandler(val):
-    global isPlaying
-    isPlaying = not isPlaying
-    print('Changed isPlaying: %r' % isPlaying)
+    setIsPlayingCtrlText(not isPlaying)
 playActionButton.on_clicked(playActionHandler)
+
+# print out variables
+isPlayingCtrlAxis = plt.axes([0.01, 0.97, 0.5, 0.03])
+isPlayingCtrlText = plt.text(0, 0, 'isPlaying: %r' % isPlaying)
+def setIsPlayingCtrlText(val):
+    global isPlaying
+    isPlaying = val
+    isPlayingCtrlText.set_text('isPlaying: %r' % isPlaying)
+    plt.draw()
+
+iterParamAxis = plt.axes([0.01, 0.94, 0.5, 0.03])
+iterParamText = plt.text(0, 0, 'iter: %i' % 0)
+def setIterParamText(val):
+    iterParamText.set_text('iter: %i' % val)
+    plt.draw()
+
+isPlayingCtrlAxis.axis('off')
+iterParamAxis.axis('off')
 
 # show figure
 plt.show()
