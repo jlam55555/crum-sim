@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from random import randint
 from math import sqrt
 from time import sleep
 from threading import Thread
@@ -9,16 +10,50 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 
 # mockup crum
-class CRUMInterface:
-    iter = 0
+class MockCRUMInterface(object):
+    def __init__(self, n):
+        self.iter = 0
+        self.n = n
+        self.vehicles = [randint(0, 2) for x in range(self.n)]
+    def travelTimeEdges(self):
+        routeCounts = self.countRoutes()
+        travelTimeEdgesMap = {
+            0: (routeCounts[0] + routeCounts[1]) / 100,
+            1: 45,
+            2: (routeCounts[1] + routeCounts[2]) / 100,
+            3: 45,
+            4: 0
+        }
+        return travelTimeEdgesMap
+    def travelTimeRoutes(self):
+        edgeTimes = self.travelTimeEdges()
+        travelTimeMap = {
+            0: edgeTimes[0] + edgeTimes[1],
+            1: edgeTimes[0] + edgeTimes[3],
+            2: edgeTimes[2] + edgeTimes[3]
+        }
+        return travelTimeMap
+    def countRoutes(self):
+        countMap = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }
+        for v in self.vehicles:
+            countMap[v] += 1
+        return countMap
     def advance(self):
         self.iter += 1
         setIterParamText(self.iter)
         print('Advanced to iteration %i' % self.iter)
+        self.vehicles = [randint(0, 2) for x in range(self.n)]
+        return {
+            'iter': self.iter,
+            'routeCounts': self.countRoutes(),
+            'edgeTimes': self.travelTimeEdges(),
+            'routeTimes': self.travelTimeRoutes()
+        }
     def reset(self):
         self.iter = 0
         setIterParamText(self.iter)
-crumIntf = CRUMInterface()
+crumIntf = MockCRUMInterface(50)
+print(crumIntf)
 
 # necessary for showing figures in separate window
 import matplotlib
@@ -75,14 +110,14 @@ resetActionButton.on_clicked(resetActionHandler)
 
 def nextActionHandler(val):
     if not isPlaying:
-        crumIntf.advance()
+        getNextStep()
 nextActionButton.on_clicked(nextActionHandler)
 
 # loop indefinitely in another thread
 def loopCrum():
     while 1:
         if isPlaying:
-            crumIntf.advance()
+            getNextStep()
         sleep(1)
 loopCrumThread = Thread(target=loopCrum, daemon=True)
 loopCrumThread.start()
@@ -109,7 +144,30 @@ def setIterParamText(val):
 isPlayingCtrlAxis.axis('off')
 iterParamAxis.axis('off')
 
+# showing charts
+# % improvement of car flow vs. rounds
+plt.subplot(4, 2, 4)
+plt.title('Improvement of Car Flow')
+plt.plot([], [])
+
+# % improvement of travel time vs. rounds
+plt.subplot(4, 2, 6)
+plt.title('Improvement of Travel Time')
+plt.plot([], [])
+
+# % car flow distribution vs. rounds
+plt.subplot(4, 2, 8)
+plt.title('Car Flow')
+plt.plot([], [])
+
+# advance
+def getNextStep():
+    stepData = crumIntf.advance()
+
+    print(stepData)
+
 # show figure
+simFigure.tight_layout()
 plt.show()
 
 # cleanly close all threads when window closed
