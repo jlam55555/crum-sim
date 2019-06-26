@@ -39,6 +39,6 @@ class NetworkPlot:
         self.cars_plt.set_offsets(self.cars.xy)
         plt.draw()
 
-    def close_handler(self):
+    def close_handler(self, val):
         print('Closing simulation')
         _exit(0)
