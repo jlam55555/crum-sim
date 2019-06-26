@@ -11,6 +11,7 @@ from sim_types import Node, Edge, Route, Car
 from sim_draw import NetworkPlot
 
 # define the network
+# this can be adjusted to create different networks
 # TODO: rename nodes to intersections (inters?)
 nodes = [
     Node(-1, 0),
@@ -31,45 +32,44 @@ routes = [
     Route([edges[0], edges[4], edges[3]])
 ]
 
+# cars the array of vehicles currently in the simulation
+# note that this cannot be all n cars because their timings are different
+cars = []
+
 # play one step of the simulation
 # let latencies be defined in number of time-steps
 # play_step is supposed to be called with every new car entering
+rate = 5            # adjustable rate of car input (# per second)
+fps = 30            # adjustable rate of animation update
+                    # make sure rate is a factor of fps
+interval = 1/fps
 cnt = 0
-cars = []
 
 
 def play_step(car, networkData):
-    global cnt
-
     # update latencies
     # for i, latency in enumerate(networkData.latencies):
     #     edges[i].latency = latency
 
-    # add new car
-    cars.append(car)
+    # add new car if correct timing (once per second)
+    if (cnt * rate) % fps == 0:
+        cars.append(car)
 
     # move cars, delete if finished
     for i, car in enumerate(cars):
-        car.advance()
+        car.advance(interval)
         if car.finished:
             del cars[i]
 
     # draw
     network_plot.update_and_draw(cars)
 
-    # update iteration number
-    print(cnt)
-    cnt += 1
-
-    # next step after delay
-    print(len(cars))
-
 
 # set arbitrary edge latencies for testing
 edges[0].set_latency(10)
-edges[1].set_latency(6)
-edges[2].set_latency(5)
-edges[3].set_latency(15)
+edges[1].set_latency(5)
+edges[2].set_latency(3)
+edges[3].set_latency(10)
 edges[4].set_latency(2)
 
 # run drawing (on main thread)
@@ -78,10 +78,10 @@ network_plot = NetworkPlot(nodes, cars)
 
 # begin simulation on another thread
 def loop_step():
+    global cnt
     while 1:
         play_step(Car(routes[randint(0, 2)]), None)
-        sleep(1)
-
-
+        cnt += 1
+        sleep(interval)
 loop_step_thread = Thread(target=loop_step, daemon=True)
 loop_step_thread.start()

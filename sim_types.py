@@ -27,12 +27,16 @@ class Edge:
         self.latency = latency
         self.currentStep = 1 / self.latency
 
+    def get_coords(self, routePos):
+        return [
+            self.start.x + routePos*(self.end.x - self.start.x),
+            self.start.y + routePos*(self.end.y - self.start.y)
+        ]
+
     # routePos is a number in the interval [0, 1]
-    def getCoords(self, routePos):
-        routePos += self.currentStep
-        x = self.start.x + routePos*(self.end.x - self.start.x)
-        y = self.start.y + routePos*(self.end.y - self.start.y)
-        return [routePos, x, y]
+    def next_coords(self, routePos, interval):
+        routePos += self.currentStep * interval
+        return [routePos, *self.get_coords(routePos)]
 
 
 class Route:
@@ -46,19 +50,20 @@ class Car(Node):
         # TODO: change coordinates to network origin
         super().__init__(0, 0)
         self.route = route
-        self.routeEdge = 0
-        self.routePos = 0
+        self.route_edge = 0
+        self.route_pos = 0
         self.is_crum = is_crum
         self.finished = False
 
-    def advance(self):
-        currentEdge = self.route.edges[self.routeEdge]
+    def advance(self, interval):
+        current_edge = self.route.edges[self.route_edge]
         # TODO: make this more efficient (don't fully recalculate after every step)
-        self.routePos, self.x, self.y = currentEdge.getCoords(self.routePos)
+        self.route_pos, self.x, self.y = current_edge.next_coords(self.route_pos, interval)
 
-        if self.routePos >= 1:
-            if self.routeEdge >= self.route.length - 1:
+        if self.route_pos >= 1:
+            if self.route_edge >= self.route.length - 1:
                 self.finished = True
             else:
-                self.routeEdge += 1
-                self.edgePos = 0
+                # TODO: improve this to include moving after it reaches the intersection
+                self.route_edge += 1
+                self.route_pos = 0

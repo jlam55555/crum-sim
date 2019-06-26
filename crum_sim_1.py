@@ -1,4 +1,5 @@
-import numpy as np
+# ignore this: this is an older concept of the visualization
+
 import os
 from random import randint, random
 from math import sqrt
