@@ -46,7 +46,7 @@ class Route:
 
 
 class Car(Node):
-    def __init__(self, route, is_crum=False):
+    def __init__(self, route, is_crum):
         # TODO: change coordinates to network origin
         super().__init__(0, 0)
         self.route = route

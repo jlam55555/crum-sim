@@ -1,6 +1,6 @@
 # imports
 from math import sqrt
-from random import randint
+from random import randint, random
 from threading import Thread
 from time import sleep
 
@@ -80,7 +80,8 @@ network_plot = NetworkPlot(nodes, cars)
 def loop_step():
     global cnt
     while 1:
-        play_step(Car(routes[randint(0, 2)]), None)
+        # right now create cars randomly (also random CRUM with arbitrary p=0.1)
+        play_step(Car(routes[randint(0, 2)], random() > 0.9), None)
         cnt += 1
         sleep(interval)
 loop_step_thread = Thread(target=loop_step, daemon=True)
